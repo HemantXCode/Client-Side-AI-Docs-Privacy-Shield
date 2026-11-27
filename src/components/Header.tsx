@@ -1,11 +1,15 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Lock, ShieldCheck, Upload, WifiOff } from 'lucide-react';
+import { Upload } from 'lucide-react';
 
 interface HeaderProps {
   onFileSelected: (file: File) => void;
+  isDark?: boolean;
 }
 
-export const Header: React.FC<HeaderProps> = ({ onFileSelected }) => {
+export const Header: React.FC<HeaderProps> = ({
+  onFileSelected,
+  isDark = false,
+}) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isOnline, setIsOnline] = useState<boolean>(
     typeof navigator !== 'undefined' ? navigator.onLine : true
@@ -31,44 +35,79 @@ export const Header: React.FC<HeaderProps> = ({ onFileSelected }) => {
   };
 
   return (
-    <header className="border-b border-slate-800/80 bg-slate-950/90 backdrop-blur-md sticky top-0 z-30">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3.5 flex flex-wrap items-center justify-between gap-3">
+    <header
+      className={`border-b sticky top-0 z-30 transition-colors duration-150 ${
+        isDark
+          ? 'bg-dark-bg border-dark-line text-dark-text'
+          : 'bg-paper border-ink text-ink'
+      }`}
+    >
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3 flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-3">
-          <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-emerald-500/25 to-cyan-500/20 border border-emerald-500/40 flex items-center justify-center shadow-lg shadow-emerald-950/40">
-            <ShieldCheck className="h-5 w-5 text-emerald-400" />
+          {/* Custom inline stroke SVG shield with orange redaction bar */}
+          <div
+            className={`h-10 w-10 rounded-[4px] border flex items-center justify-center shrink-0 ${
+              isDark
+                ? 'bg-dark-panel border-dark-line'
+                : 'bg-panel border-ink'
+            }`}
+            aria-hidden="true"
+          >
+            <svg
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M12 2.5L4.5 5.5V11.5C4.5 16.4 7.7 20.6 12 22C16.3 20.6 19.5 16.4 19.5 11.5V5.5L12 2.5Z"
+                stroke={isDark ? '#EFE9DD' : '#15171A'}
+                strokeWidth="1.75"
+                strokeLinejoin="round"
+              />
+              <rect
+                x="7.25"
+                y="10.25"
+                width="9.5"
+                height="3.5"
+                rx="1"
+                fill={isDark ? '#F28B5B' : '#C2410C'}
+              />
+            </svg>
           </div>
-          <div>
-            <div className="flex items-center gap-2">
-              <h1 className="text-lg sm:text-xl font-bold tracking-tight text-slate-50">
-                SafePaste
-              </h1>
-              <span className="hidden sm:inline-flex items-center rounded-md bg-slate-800/90 px-2 py-0.5 text-[11px] font-medium text-slate-300 border border-slate-700">
-                Zero-Trust PII Shield
-              </span>
-            </div>
-            <p className="text-xs text-slate-400">
-              Sanitize logs, resumes, tickets & CSVs locally before sharing with AI
-            </p>
+
+          <div className="flex flex-col sm:flex-row sm:items-baseline sm:gap-3">
+            <h1 className="text-xl font-bold tracking-tight">SafePaste</h1>
+            <span
+              className={`font-mono text-xs ${
+                isDark ? 'text-dark-muted' : 'text-muted'
+              }`}
+            >
+              client-side · zero-trust
+            </span>
           </div>
         </div>
 
         <div className="flex items-center gap-2.5 flex-wrap">
           <div
-            className="inline-flex items-center gap-2 rounded-full bg-emerald-950/60 border border-emerald-500/35 px-3 py-1.5 text-xs font-medium text-emerald-300"
-            title="All regex scanning, Luhn verification, and redaction run 100% inside your browser memory."
+            className={`inline-flex items-center gap-2 rounded-[4px] border px-3 py-1.5 min-h-[36px] font-mono text-xs font-medium ${
+              isDark
+                ? 'bg-dark-panel border-dark-line text-dark-text'
+                : 'bg-panel border-ink text-ink'
+            }`}
+            title="All scanning, checksum validation, and redaction execute locally in browser memory."
           >
-            <span className="relative flex h-2 w-2">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-400" />
+            <span
+              className={`h-2 w-2 rounded-full shrink-0 ${
+                isDark ? 'bg-dark-accent' : 'bg-accent'
+              }`}
+              aria-hidden="true"
+            />
+            <span>
+              {isOnline ? 'OFFLINE' : 'OFFLINE (DISCONNECTED)'} · connect-src
+              &apos;none&apos;
             </span>
-            <Lock className="h-3.5 w-3.5 text-emerald-400" />
-            <span>100% Local • 0 KB Sent • Offline Ready</span>
-            {!isOnline && (
-              <span className="inline-flex items-center gap-1 ml-1 pl-1.5 border-l border-emerald-500/30 text-emerald-200">
-                <WifiOff className="h-3 w-3" />
-                Offline
-              </span>
-            )}
           </div>
 
           <input
@@ -82,10 +121,15 @@ export const Header: React.FC<HeaderProps> = ({ onFileSelected }) => {
           <button
             type="button"
             onClick={() => fileInputRef.current?.click()}
-            className="inline-flex items-center gap-2 rounded-lg bg-slate-800 hover:bg-slate-700 active:bg-slate-700/80 border border-slate-700 px-3.5 py-2 text-xs font-semibold text-slate-100 transition-colors cursor-pointer"
+            aria-label="Upload .txt or .csv file"
+            className={`inline-flex items-center gap-2 rounded-[4px] border px-3 py-2 min-h-[44px] sm:min-h-[36px] text-xs font-medium transition-colors duration-150 cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 ${
+              isDark
+                ? 'bg-dark-panel border-dark-line text-dark-text hover:border-dark-accent focus-visible:outline-dark-accent'
+                : 'bg-panel border-ink text-ink hover:bg-paper focus-visible:outline-accent'
+            }`}
           >
-            <Upload className="h-3.5 w-3.5 text-cyan-400" />
-            Upload .txt / .csv
+            <Upload className="h-3.5 w-3.5" strokeWidth={1.75} aria-hidden="true" />
+            <span>Upload</span>
           </button>
         </div>
       </div>
